@@ -112,8 +112,8 @@ int main(int argc, char *argv[]){
     char readbuffer[30];
     
     //Cria fila de mensagens
-    int id;
-    if ((id = msgget(0x8551, IPC_CREAT | 0x1FF)) < 0) {
+    int queue_id;
+    if ((queue_id = msgget(0x8551, IPC_CREAT | 0x1FF)) < 0) {
 		printf("Error creating queue\n");
 		exit(5);
 	}
@@ -155,7 +155,7 @@ int main(int argc, char *argv[]){
 			    exit(3);
 		    }
             
-            if ((msgrcv(high_priority_queue_id, &msg_rcvd, sizeof(msg_rcvd), 0, IPC_NOWAIT)) >= 0) {
+            if ((msgrcv(queue_id, &msg_rcvd, sizeof(msg_rcvd), 0, IPC_NOWAIT)) >= 0) {
                 printf("MENSAGEM RECEBIDA!");
             }
 
