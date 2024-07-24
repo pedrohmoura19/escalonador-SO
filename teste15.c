@@ -1,19 +1,26 @@
-#include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
+#include <stdlib.h>
 #include <string.h>
-#include <sys/msg.h>
+#include <errno.h>
+#include <signal.h>
+#include <unistd.h>
+#include <sys/wait.h>
 #include <sys/ipc.h>
+#include <sys/msg.h>
 
 struct message {
 	long mtype;
 	char mtext[100];
-} msg_send;
+};
 
-int main(){
+int main(int argc, char **argv){
+	struct message msg_send;
     long i;
+	pid_t pid;
     int queue_id;
-    msg_send.mtype = 1;
+	
+    msg_send.mtype = getpid();
+
     strcpy(msg_send.mtext, "PROCESSO");
 
 
@@ -22,12 +29,16 @@ int main(){
 		exit(5);
 	}
 
-    for(i=0; i<8000000000; i++);
+	printf("Processo %s executando\n", argv[1]);
+	sleep(1);
+    //for(i=0; i<8000000000; i++);
+	//comment
+
     if (msgsnd(queue_id, &msg_send, sizeof(msg_send), IPC_NOWAIT) < 0) {
 		printf("Error sending message\n");
 		exit(4);
 	}
 
-	printf("Processo PID = 1 encerrou\n");
+	printf("Processo encerrou\n");
     return 0;
 }

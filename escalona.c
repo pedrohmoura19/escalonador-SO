@@ -6,6 +6,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <errno.h>
 #include <signal.h>
@@ -54,7 +55,7 @@ int main(int argc, char *argv[]){
     //struct f_buff proc[8];
     //struct f_buff queue_ready[8];
     int n_cores, proc_name;
-    int amount_process = amount_lines();
+    int amount_proccess = amount_lines();
     char command[8], proc_dependency[15];
     
 
@@ -65,15 +66,14 @@ int main(int argc, char *argv[]){
     //process struct
     typedef struct {
         int pid;
-        int executed;
+        bool executed;
 
         int name;
         char command[8];
         int input_dependency[15];
     } f_buff;
 
-
-    f_buff processos[amount_process];
+    f_buff processos[amount_proccess], ready_processos[amount_proccess];
 
     FILE *fp;
     if((fp = fopen("input.txt", "r")) < 0){ //Leitura de dados do arquivo
@@ -113,13 +113,14 @@ int main(int argc, char *argv[]){
     
     //Cria fila de mensagens
     int queue_id;
+    long rc = 1;
     if ((queue_id = msgget(0x8551, IPC_CREAT | 0x1FF)) < 0) {
 		printf("Error creating queue\n");
 		exit(5);
 	}
 
 
-    for(int i=0; i<amount_process; i++){
+    for(int i=0; i<amount_proccess; i++){
         //verifica se pipe deu certo
         if(pipe(fd) < 0){
             printf("Erro no pipe");
@@ -133,6 +134,8 @@ int main(int argc, char *argv[]){
 
         if(pid == 0)
         {
+            processos[i].pid = getpid(); 
+
             /* Child process closes up input side of pipe */
             close(fd[0]);
 
@@ -150,14 +153,17 @@ int main(int argc, char *argv[]){
             }
             sleep(1);
 
-            if (execl(processos[i].command, processos[i].command, (char *) 0) < 0) {
+
+            char name_char[2];
+            name_char[0] = processos[i].name + '0';
+            if (execl(processos[i].command, processos[i].command, name_char, (char *) 0) < 0) {
 			    printf("Error in execl = %d\n", errno);
 			    exit(3);
+                //comment
 		    }
             
-            if ((msgrcv(queue_id, &msg_rcvd, sizeof(msg_rcvd), 0, IPC_NOWAIT)) >= 0) {
-                printf("MENSAGEM RECEBIDA!");
-            }
+            printf("voltei para ca e sou o filho\n");
+           
 
             //verificar se dependencia ja foi executada, nao ha processos executando e tem core disponivel
             //pegar pid e sinalizar que tal processo terminou
@@ -175,7 +181,26 @@ int main(int argc, char *argv[]){
 
         if(strcmp(msg, "first") == 0) printf("estou com primeiro\n");
         if(strcmp(msg, "first") != 0) kill(pid, SIGSTOP);
-        wait(&status);
+
+
+        while(1){
+            if ((msgrcv(queue_id, &msg_rcvd, sizeof(msg_rcvd), rc, 0)) >= 0) {
+                long procpid = msg_rcvd.mtype;
+                printf("Recebi o sinal do final da execução do processo: %ld", procpid);
+
+                for(int j=0; i<amount_proccess; i++){
+                    if(processos[j].pid == procpid){
+                        processos[j].executed = true;
+                    }
+                }
+                continue;
+                
+            }
+        }
+        
+        
+        
+       wait(&status);
     }   
     return 0;
 }
