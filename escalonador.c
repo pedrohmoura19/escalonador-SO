@@ -80,8 +80,8 @@ int main(int argc, char *argv[]) {
         processes[i].num_dependencies = 0;
         processes[i].exec_time = 0.0;
         strcpy(processes[i].command, command);
+        pipe(processes[i].pipe_fd);
         
-
         if(strcmp(proc_dependency, "0,#") == 0){
             first_process = processes[i].name;
         }
@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
                     if (pid == 0) {
                         // Código do processo filho
                         close(processes[k].pipe_fd[0]);
-                        if (execl(processes[k].command, processes[i].command, (char *) 0) < 0) {
+                        if (execl(processes[k].command, processes[k].command, (char *) 0) < 0) {
 			                exit(3);
 		                }
                         exit(0);
@@ -199,6 +199,8 @@ int main(int argc, char *argv[]) {
 
     for (int k = 0; k < number_processes; k++) {
         printf("Tempo de execucao Processo %d: %.2f segundos\n", processes[k].name, processes[k].exec_time);
+        close(processes[k].pipe_fd[0]);
+        close(processes[k].pipe_fd[1]);
     }
 
     printf("Tempo makespan total: %.2f segundos\n", makespan);
