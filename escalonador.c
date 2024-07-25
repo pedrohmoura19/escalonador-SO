@@ -149,7 +149,7 @@ int main(int argc, char *argv[]) {
                 // printf("Processo %d executando \n", processes[k].name);
 
                 if(active_processes == n_cores){
-                    // printf("Todos os cores ocupados\n");
+                    printf("Todos os cores ocupados\n");
                     int status;
                     waitpid(pid, &status, 0);
 
@@ -166,8 +166,8 @@ int main(int argc, char *argv[]) {
                     close(processes[k].pipe_fd[1]);
                 }
 
-                else if (waitpid(processes[k].pid, &status, WNOHANG) == processes[k].pid){
-                    // printf("Processo %d finalizado\n", processes[k].name);
+                if (waitpid(processes[k].pid, &status, WNOHANG) == processes[k].pid){
+                    printf("Processo %d finalizado\n", processes[k].name);
                     processes[k].executed = true;
                     active_processes--;
                     executed_processes++;
