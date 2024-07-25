@@ -165,7 +165,6 @@ int main(int argc, char *argv[]) {
                 }
 
                 else if (waitpid(processes[k].pid, &status, WNOHANG) == processes[k].pid){
-                    printf("Processo %d finalizado\n", processes[k].name);
                     processes[k].executed = true;
                     active_processes--;
                     executed_processes++;
