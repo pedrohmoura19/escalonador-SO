@@ -145,15 +145,13 @@ int main(int argc, char *argv[]) {
             }
         }
         for (int k = 0; k < number_processes; k++) {
-            if (processes[k].pid > 0) {
-                // printf("Processo %d executando \n", processes[k].name);
-
+            while (processes[k].pid > 0) {
+                
+                
                 if(active_processes == n_cores){
-                    printf("Todos os cores ocupados\n");
                     int status;
                     waitpid(pid, &status, 0);
 
-                    // printf("Processo %d finalizado\n", processes[k].name);
                     processes[k].executed = true;
                     executed_processes++;
                     active_processes--;
@@ -166,7 +164,7 @@ int main(int argc, char *argv[]) {
                     close(processes[k].pipe_fd[1]);
                 }
 
-                if (waitpid(processes[k].pid, &status, WNOHANG) == processes[k].pid){
+                else if (waitpid(processes[k].pid, &status, WNOHANG) == processes[k].pid){
                     printf("Processo %d finalizado\n", processes[k].name);
                     processes[k].executed = true;
                     active_processes--;
@@ -180,16 +178,7 @@ int main(int argc, char *argv[]) {
                     close(processes[k].pipe_fd[1]);
                 }
                 
-                // int status;
-                // waitpid(pid, &status, 0);
-
-                // printf("Scheduler: Processo %d finalizado\n", processes[k].name);
-                // processes[k].executed = true;
-                // executed_processes++;
-                // processes[k].pid = 0;
-
-                // close(processes[k].pipe_fd[1]);
-
+                usleep(1000);
             }    
         }
     }
